@@ -38,8 +38,8 @@ El proyecto está dividido en dos partes principales:
 ### 1. Clonar el repositorio
 
 ```bash
-git clone https://github.com/tu-usuario/nutri-assistant.git
-cd nutri-assistant
+git clone https://github.com/4ailabs/nutri-assistant-app.git
+cd nutri-assistant-app
 ```
 
 ### 2. Configurar el backend

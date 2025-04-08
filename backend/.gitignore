@@ -1,8 +1,5 @@
 # Dependencias
 node_modules/
-npm-debug.log
-yarn-error.log
-yarn-debug.log
 
 # Variables de entorno
 .env
@@ -11,13 +8,16 @@ yarn-debug.log
 .env.test.local
 .env.production.local
 
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+logs
+*.log
+
 # Archivos del sistema
 .DS_Store
 Thumbs.db
-
-# Logs
-logs
-*.log
 
 # Directorios de runtime
 dist/
