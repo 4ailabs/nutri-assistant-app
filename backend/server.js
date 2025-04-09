@@ -6,40 +6,19 @@ const OpenAI = require('openai');
 const app = express();
 const port = process.env.PORT || 5000;
 
-// Configuración de CORS
-const allowedOrigins = process.env.ALLOWED_ORIGINS 
-  ? process.env.ALLOWED_ORIGINS.split(',') 
-  : ['http://localhost:3000', 'https://framer.com', 'https://framer.website', 
-     'https://editor.framer.com', 'https://*.framer.app'];
-
+// Configuración de CORS - Configuración permisiva para todos los orígenes
 app.use(cors({
-  origin: function(origin, callback) {
-    // Permitir solicitudes sin origen (como aplicaciones móviles o curl)
-    if (!origin) return callback(null, true);
-    
-    // En desarrollo, permitir cualquier origen
-    if (process.env.NODE_ENV !== 'production') {
-      return callback(null, true);
-    }
-    
-    // En producción, comprobar si el origen está permitido
-    // Permitir dominios framer con comodín
-    const isFramerDomain = origin && (
-      origin.includes('framer.com') || 
-      origin.includes('framer.app') || 
-      origin.includes('framer.website')
-    );
-    
-    if (allowedOrigins.indexOf(origin) !== -1 || isFramerDomain) {
-      callback(null, true);
-    } else {
-      // Log para depuración
-      console.log(`CORS rechazado para origen: ${origin}`);
-      callback(new Error('No permitido por CORS'));
-    }
-  },
+  origin: '*',
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept'],
   credentials: true
 }));
+
+// Log de todas las solicitudes para depuración
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.url} - Origen: ${req.headers.origin || 'No origen'}`);
+  next();
+});
 
 app.use(express.json());
 
