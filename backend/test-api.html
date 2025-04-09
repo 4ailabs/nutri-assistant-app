@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prueba de API de Nutrición</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #4f46e5;
+            margin-bottom: 20px;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        textarea, button {
+            font-family: inherit;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        textarea {
+            border: 1px solid #ccc;
+            min-height: 100px;
+        }
+        button {
+            background-color: #4f46e5;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #4338ca;
+        }
+        #response {
+            padding: 15px;
+            border-radius: 5px;
+            background-color: #f9fafb;
+            border-left: 4px solid #4f46e5;
+            white-space: pre-wrap;
+            display: none;
+        }
+        #loading {
+            display: none;
+            text-align: center;
+            padding: 10px;
+        }
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(79, 70, 229, 0.2);
+            border-radius: 50%;
+            border-top-color: #4f46e5;
+            animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <h1>Prueba de la API de Asistente Nutricional</h1>
+    <div class="container">
+        <div class="form-group">
+            <label for="message">Mensaje:</label>
+            <textarea id="message" placeholder="Escribe tu pregunta nutricional aquí...">¿Qué alimentos son ricos en proteínas?</textarea>
+        </div>
+        <div class="form-group">
+            <label for="userInfo">Información del Usuario (JSON):</label>
+            <textarea id="userInfo" placeholder="Información del usuario en formato JSON">{"age":"30","gender":"masculino","weight":"75","height":"180"}</textarea>
+        </div>
+        <button id="sendBtn">Enviar consulta</button>
+        
+        <div id="loading">
+            <div class="spinner"></div>
+            <p>Consultando a OpenAI...</p>
+        </div>
+        
+        <div id="response"></div>
+    </div>
+
+    <script>
+        document.getElementById('sendBtn').addEventListener('click', async () => {
+            const messageText = document.getElementById('message').value.trim();
+            let userInfoText = document.getElementById('userInfo').value.trim();
+            const responseElement = document.getElementById('response');
+            const loadingElement = document.getElementById('loading');
+            
+            if (!messageText) {
+                alert('Por favor, escribe un mensaje');
+                return;
+            }
+            
+            let userInfo = {};
+            try {
+                userInfo = JSON.parse(userInfoText);
+            } catch (e) {
+                alert('El formato JSON de la información del usuario es inválido');
+                return;
+            }
+            
+            // Mostrar estado de carga
+            loadingElement.style.display = 'block';
+            responseElement.style.display = 'none';
+            
+            try {
+                const API_URL = 'https://web-production-91232.up.railway.app';
+                const response = await fetch(`${API_URL}/api/nutrition-advice`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: messageText,
+                        userInfo: userInfo
+                    })
+                });
+                
+                const data = await response.json();
+                
+                // Mostrar respuesta
+                responseElement.textContent = data.response || JSON.stringify(data, null, 2);
+                responseElement.style.display = 'block';
+            } catch (error) {
+                responseElement.textContent = `Error: ${error.message}`;
+                responseElement.style.display = 'block';
+            } finally {
+                loadingElement.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

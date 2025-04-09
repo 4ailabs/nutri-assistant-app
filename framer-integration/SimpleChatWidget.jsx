@@ -17,15 +17,19 @@ export default function SimpleChatWidget() {
   const sendMessage = async (message) => {
     try {
       setIsLoading(true);
+      console.log("Enviando solicitud a:", `${API_URL}/api/nutrition-advice`);
+      
       const response = await fetch(`${API_URL}/api/nutrition-advice`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          "Origin": window.location.origin
         },
         body: JSON.stringify({
           message,
           userInfo: {} // Versión simple sin perfil de usuario
-        })
+        }),
+        mode: 'cors'
       });
 
       if (!response.ok) {
@@ -36,7 +40,16 @@ export default function SimpleChatWidget() {
       return data.response;
     } catch (error) {
       console.error("Error:", error);
-      return "Lo siento, ha ocurrido un error al procesar tu solicitud.";
+      // Mostrar más detalles del error
+      try {
+        if (error.response) {
+          return `Error: ${error.response.status} - ${JSON.stringify(error.response.data)}`;
+        } else {
+          return `Error: ${error.message || 'Desconocido'}`;
+        }
+      } catch (e) {
+        return `Error al procesar la solicitud: ${error.message || 'Desconocido'}`;
+      }
     } finally {
       setIsLoading(false);
     }
