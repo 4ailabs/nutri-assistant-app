@@ -2,14 +2,29 @@
   "version": 2,
   "builds": [
     {
-      "src": "simple-bot/server.js",
+      "src": "backend/server.js",
       "use": "@vercel/node"
+    },
+    {
+      "src": "frontend/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "build"
+      }
     }
   ],
   "routes": [
     {
+      "src": "/api/(.*)",
+      "dest": "backend/server.js"
+    },
+    {
       "src": "/(.*)",
-      "dest": "simple-bot/server.js"
+      "dest": "frontend/$1"
+    },
+    {
+      "src": "/",
+      "dest": "frontend/index.html"
     }
   ]
 }

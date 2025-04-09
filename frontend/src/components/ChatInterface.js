@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+const API_URL = process.env.REACT_APP_API_URL || 'https://nutri-assistant-app.vercel.app/api';
 
 // Mensajes de sugerencia para mejorar la experiencia de usuario
 const SUGGESTED_QUESTIONS = [

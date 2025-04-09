@@ -1,31 +1,30 @@
 # Integración con Framer
 
-Esta carpeta contiene los archivos necesarios para integrar el asistente nutricional en tu sitio de Framer.
+Este directorio contiene componentes React diseñados para ser integrados en proyectos de Framer.
 
-## Instrucciones para integrar en Framer
+## Integración mediante iframe
 
-### Método 1: Integración como componente de código personalizado
+Para integrar el chatbot en tu sitio de Framer, puedes usar un iframe:
 
-1. En Framer, crea un nuevo componente de código (Code Component)
-2. Copia el contenido del archivo `ChatWidget.jsx` en el editor de código
-3. Asegúrate de reemplazar la URL de la API con la URL de tu backend desplegado en Railway
-4. Guarda el componente y úsalo en tu diseño
+```html
+<iframe
+  src="https://nutri-assistant-app.vercel.app"
+  width="100%"
+  height="600"
+  frameborder="0"
+  allow="autoplay; microphone"
+></iframe>
+```
 
-### Método 2: Integración vía iframe
+Puedes ajustar el ancho y alto según tus necesidades.
 
-1. Despliega el frontend en algún servicio como Vercel o Netlify
-2. En Framer, añade un componente de iframe
-3. Configura el iframe para que apunte a la URL donde desplegaste el frontend
-4. Ajusta las dimensiones según sea necesario
+## Componente React para Framer
 
-## Requisitos
+Para una integración más personalizada, te recomendamos crear un componente personalizado en Framer usando el código del archivo `FramerChatWidget.jsx`.
 
-- Necesitarás tener el backend desplegado en Railway o en algún otro servicio similar
-- Actualiza la variable `API_URL` en `ChatWidget.jsx` con la URL de tu backend
-- Para evitar problemas de CORS, asegúrate de que tu backend tenga configurado correctamente el dominio de Framer en la lista de orígenes permitidos
+### Pasos:
 
-## Personalización
-
-Puedes personalizar el aspecto del chat modificando las clases de CSS en el archivo `ChatWidget.jsx`. El componente utiliza Tailwind CSS para el estilizado, pero puedes adaptarlo a tu propio sistema de diseño.
-
-Si necesitas funcionalidades adicionales, consulta la documentación completa del backend en el README principal del proyecto.
+1. En tu proyecto de Framer, crea un nuevo componente código
+2. Copia el contenido del archivo `/simple-bot/FramerChatButton.jsx`
+3. Asegúrate de actualizar la variable `API_URL` con la URL de tu aplicación desplegada en Vercel
+4. Personaliza los estilos según sea necesario

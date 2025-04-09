@@ -6,9 +6,9 @@ const OpenAI = require('openai');
 const app = express();
 const port = process.env.PORT || 5000;
 
-// Configuración de CORS - Configuración permisiva para todos los orígenes
+// Configuración de CORS - Permitir orígenes específicos
 app.use(cors({
-  origin: '*',
+  origin: ['https://framer.com', 'https://www.framer.com', 'https://tu-sitio-en-framer.framer.app'],
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept'],
   credentials: true

@@ -32,6 +32,7 @@ El proyecto está dividido en dos partes principales:
 
 - Node.js 16+
 - Cuenta de OpenAI con clave API
+- Cuenta en Vercel para el despliegue
 
 ## Instalación
 
@@ -42,82 +43,55 @@ git clone https://github.com/4ailabs/nutri-assistant-app.git
 cd nutri-assistant-app
 ```
 
-### 2. Configurar el backend
+### 2. Configurar el entorno
 
 ```bash
-cd backend
-npm install
 cp .env.example .env
+npm run install-all
 ```
 
 Edita el archivo `.env` con tu clave API de OpenAI.
 
-### 3. Configurar el frontend
+### 3. Iniciar el desarrollo
 
 ```bash
-cd ../frontend
-npm install
-cp .env.example .env.local
-```
-
-### 4. Iniciar el desarrollo
-
-Backend:
-```bash
-cd backend
 npm run dev
 ```
 
-Frontend:
-```bash
-cd frontend
-npm start
-```
+## Despliegue en Vercel
 
-## Despliegue
-
-### Railway
-
-1. Conecta tu repositorio de GitHub a Railway:
-   ```
-   railway link
-   ```
-
+1. Conecta tu repositorio de GitHub a Vercel
 2. Configura las variables de entorno necesarias:
-   ```
-   railway variables set OPENAI_API_KEY=tu_clave_api_de_openai
-   railway variables set ALLOWED_ORIGINS=https://tu-sitio-framer.com,http://localhost:3000
-   ```
+   - `OPENAI_API_KEY`: Tu clave API de OpenAI
+3. Asegúrate de que Vercel esté configurado para usar Node.js 16 o superior
+4. Despliega tu aplicación
 
-3. Despliega tu aplicación:
-   ```
-   railway up
-   ```
-
-4. Obtén la URL de tu API:
-   ```
-   railway domain
-   ```
-
-### Framer Integration
+## Integración con Framer
 
 Para integrar en Framer, tienes dos opciones:
 
-#### Opción 1: Usar el componente de código personalizado
+### Opción 1: Usar un iframe
 
-1. Despliega el backend en Railway
-2. En Framer, crea un nuevo componente de código
-3. Copia el contenido del archivo `/framer-integration/ChatWidget.jsx`
-4. Actualiza la variable `API_URL` con la URL de tu backend en Railway
-5. Añade el componente a tu diseño de Framer
+1. En Framer, añade un componente de iframe
+2. Configura el iframe para que apunte a la URL de tu aplicación en Vercel:
 
-#### Opción 2: Usar un iframe
+```html
+<iframe
+  src="https://nutri-assistant-app.vercel.app"
+  width="100%"
+  height="600"
+  frameborder="0"
+></iframe>
+```
 
-1. Despliega tanto el backend como el frontend:
-   - Backend: En Railway
-   - Frontend: En Vercel, Netlify u otro servicio de hosting
-2. En Framer, añade un componente de iframe
-3. Configura el iframe para que apunte a la URL del frontend
+### Opción 2: Usar el componente de código personalizado
+
+1. En Framer, crea un nuevo componente de código
+2. Copia el contenido del archivo `/simple-bot/FramerChatButton.jsx`
+3. Actualiza la variable `API_URL` con la URL de tu aplicación en Vercel
+4. Añade el componente a tu diseño de Framer
+
+Para más detalles, consulta la documentación en `/framer-integration/README.md`.
 
 ## Licencia
 
