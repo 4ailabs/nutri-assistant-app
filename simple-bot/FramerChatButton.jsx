@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 
 // Reemplazar con tu URL de backend desplegado
-const API_URL = "https://tu-url-de-backend.vercel.app";
+const API_URL = "https://nutri-assistant-app.vercel.app";
 
 export default function FramerChatButton() {
   const [isOpen, setIsOpen] = useState(false);
