@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
-// Asegúrate de reemplazar con la URL de tu API en Railway
-const API_URL = "https://tu-app-railway.up.railway.app";
+// URL de la API desplegada en Railway
+const API_URL = "https://web-production-91232.up.railway.app";
 
 export default function ChatWidget() {
   const [messages, setMessages] = useState([
