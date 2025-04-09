@@ -87,6 +87,89 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date() });
 });
 
+// Ruta raíz para mostrar información básica
+app.get('/', (req, res) => {
+  res.send(`
+    <html>
+      <head>
+        <title>API Asistente Nutricional</title>
+        <style>
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+          }
+          h1 {
+            color: #4f46e5;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 10px;
+          }
+          .endpoint {
+            background-color: #f9fafb;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid #4f46e5;
+          }
+          code {
+            background-color: #e5e7eb;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+          }
+          .method {
+            font-weight: bold;
+            display: inline-block;
+            padding: 3px 6px;
+            border-radius: 4px;
+            color: white;
+            font-size: 0.85em;
+            margin-right: 8px;
+          }
+          .get {
+            background-color: #10b981;
+          }
+          .post {
+            background-color: #3b82f6;
+          }
+        </style>
+      </head>
+      <body>
+        <h1>API del Asistente Nutricional</h1>
+        <p>Esta es la API del servicio de asistente nutricional. Para utilizar este servicio, debes hacer peticiones a los siguientes endpoints:</p>
+        
+        <div class="endpoint">
+          <h3><span class="method post">POST</span> /api/nutrition-advice</h3>
+          <p>Envía una consulta al asistente nutricional y recibe recomendaciones personalizadas.</p>
+          <p><strong>Cuerpo de la petición:</strong></p>
+          <pre><code>{
+  "message": "¿Qué alimentos son ricos en proteína?",
+  "userInfo": {
+    "age": "30",
+    "gender": "femenino",
+    "weight": "65",
+    "height": "170",
+    "goals": "Ganar masa muscular",
+    "dietaryRestrictions": "Vegetariana",
+    "allergies": "Nueces"
+  }
+}</code></pre>
+        </div>
+        
+        <div class="endpoint">
+          <h3><span class="method get">GET</span> /api/health</h3>
+          <p>Comprueba el estado del servidor.</p>
+        </div>
+        
+        <p>Para más información, consulta la <a href="https://github.com/4ailabs/nutri-assistant-app">documentación en GitHub</a>.</p>
+      </body>
+    </html>
+  `);
+});
+
 app.listen(port, () => {
   console.log(`Servidor ejecutándose en http://localhost:${port}`);
 });
