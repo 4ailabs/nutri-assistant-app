@@ -3,11 +3,14 @@
   "version": "1.0.0",
   "description": "Un chatbot de orientación nutricional impulsado por OpenAI para integración con Framer",
   "private": true,
+  "main": "simple-bot/server.js",
   "scripts": {
     "install-all": "npm install && cd backend && npm install && cd ../frontend && npm install",
     "dev": "concurrently \"cd backend && npm run dev\" \"cd frontend && npm start\"",
-    "build": "cd frontend && npm run build",
-    "start": "cd backend && npm start"
+    "simple-dev": "node simple-bot/server.js",
+    "simple-build": "cd simple-bot && npm install",
+    "start": "node simple-bot/server.js",
+    "build": "npm install && cd simple-bot && npm install"
   },
   "keywords": [
     "nutrition",
@@ -17,7 +20,16 @@
   ],
   "author": "Miguel Ojeda",
   "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "openai": "^4.26.0"
+  },
   "devDependencies": {
     "concurrently": "^7.6.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
   }
 }
