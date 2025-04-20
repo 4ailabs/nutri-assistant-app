@@ -1,10 +1,23 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const OpenAI = require('openai');
+const axios = require('axios');
+const fs = require('fs');
+const path = require('path');
 
 const app = express();
 const port = process.env.PORT || 5000;
+
+// Carga el archivo JSON con la información del Genotipo 1 Hunter
+let genotipoData;
+try {
+  const jsonPath = path.join(__dirname, 'data', 'deepseek-genotipo-1-hunter.json');
+  genotipoData = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
+  console.log("Información del Genotipo 1 Hunter cargada correctamente");
+} catch (error) {
+  console.error("Error al cargar el archivo JSON del Genotipo 1 Hunter:", error);
+  genotipoData = { superfoods: [], avoidances: [] }; // Valor por defecto en caso de error
+}
 
 // Configuración de CORS - Permitir orígenes específicos
 app.use(cors({
@@ -22,14 +35,18 @@ app.use((req, res, next) => {
 
 app.use(express.json());
 
-// Inicializar el cliente de OpenAI
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
+// Cliente para DeepSeek API
+const deepseekAPI = axios.create({
+  baseURL: 'https://api.deepseek.com',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`
+  }
 });
 
 // Middleware para verificar la API key
 const verifyApiKey = (req, res, next) => {
-  if (!process.env.OPENAI_API_KEY) {
+  if (!process.env.DEEPSEEK_API_KEY) {
     return res.status(500).json({ error: 'API key no configurada en el servidor' });
   }
   next();
@@ -40,7 +57,6 @@ app.post('/api/nutrition-advice', verifyApiKey, async (req, res) => {
   try {
     // Log para depuración
     console.log(`Recibida solicitud desde: ${req.headers.origin || 'Origen desconocido'}`);
-    console.log('Headers:', JSON.stringify(req.headers, null, 2));
     
     try {
       const { message, userInfo } = req.body;
@@ -52,34 +68,63 @@ app.post('/api/nutrition-advice', verifyApiKey, async (req, res) => {
       console.log(`Mensaje recibido: "${message.substring(0, 50)}${message.length > 50 ? '...' : ''}"`);
       console.log('Información del usuario:', JSON.stringify(userInfo || {}, null, 2));
 
-      // Contexto del sistema para el asistente nutricional
-      const systemMessage = `Eres un asistente de orientación nutricional profesional. 
-      Tu objetivo es proporcionar información nutricional precisa, consejos de alimentación saludable 
-      y recomendaciones basadas en evidencia científica. 
-      
-      Debes considerar la siguiente información del usuario (si está disponible):
-      - Edad: ${userInfo?.age || 'No proporcionada'}
-      - Género: ${userInfo?.gender || 'No proporcionado'}
-      - Peso: ${userInfo?.weight || 'No proporcionado'}
-      - Altura: ${userInfo?.height || 'No proporcionada'}
-      - Objetivos: ${userInfo?.goals || 'No proporcionados'}
-      - Restricciones dietéticas: ${userInfo?.dietaryRestrictions || 'No proporcionadas'}
-      - Alergias: ${userInfo?.allergies || 'No proporcionadas'}
-      
-      Recuerda que no eres un médico y debes aconsejar buscar ayuda profesional para problemas médicos o nutricionales serios.`;
+      // Contexto del sistema para el asistente nutricional basado en GenoTipos
+      const systemMessage = `Eres un asistente experto en nutrición basado en Nutrición por GenoTipos. Utilizas una base de datos JSON estructurada que contiene información sobre alimentos recomendados (superfoods) y alimentos a evitar (avoidances) para el perfil 'Genotipo 1 (Hunter)'.
 
-      console.log('Enviando solicitud a OpenAI...');
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4o",
+La estructura de datos para cada alimento incluye campos como 'name', 'is_extra_beneficial' (booleano), 'avoidance_type' ('temporary' o 'permanent') y 'notes'.
+
+**Reglas Fundamentales de la Dieta:**
+
+1. **Superalimentos (◊):** Los alimentos marcados como \`is_extra_beneficial: true\` son activadores metabólicos excelentes para este grupo, mejorando la pérdida de peso y la construcción muscular. Deben consumirse regularmente.
+2. **Evitaciones Temporales (•):** Los alimentos marcados como \`avoidance_type: "temporary"\` deben evitarse durante un período mínimo de 'limpieza' de 60 días. Después de este tiempo, pueden reintroducirse cuidadosamente en la dieta.
+3. **Evitaciones Permanentes:** Los alimentos marcados como \`avoidance_type: "permanent"\` deben evitarse de forma general a largo plazo por este grupo.
+4. **Alimentos Neutros:** **Importante:** Si un alimento **no se encuentra** en ninguna de las categorías dentro de 'superfoods' ni dentro de 'avoidances' en la base de datos proporcionada, considéralo un alimento **'neutro'** para el perfil Genotipo 1 Hunter. Los alimentos neutros son generalmente permisibles y se pueden consumir sin restricciones específicas según este plan.
+
+**Instrucción Clave de Formato al Responder:**
+
+Cuando presentes información sobre alimentos específicos o listas de alimentos al usuario, debes formatear el nombre del alimento de la siguiente manera, basándote en los campos del JSON:
+
+1. **Superalimentos Extra Beneficiosos:** Si \`is_extra_beneficial\` es \`true\`, muestra el \`name\` seguido por ◊.
+   * *Ejemplo:* \`{"name": "Res", "is_extra_beneficial": true}\` -> \`Res◊\`.
+
+2. **Evitaciones Temporales:** Si \`avoidance_type\` es \`"temporary"\`, muestra el \`name\` seguido por •.
+   * *Ejemplo:* \`{"name": "Tocino", "avoidance_type": "temporary"}\` -> \`Tocino•\`.
+
+3. **Otros Alimentos (Superalimentos normales, Evitaciones permanentes, Neutros mencionados):** Si ninguna de las condiciones anteriores se cumple, muestra únicamente el \`name\` sin símbolo.
+   * *Ejemplo (Superalimento Normal):* \`{"name": "Pollo", "is_extra_beneficial": false}\` -> \`Pollo\`.
+   * *Ejemplo (Evitación Permanente):* \`{"name": "Cerdo", "avoidance_type": "permanent"}\` -> \`Cerdo\`.
+   * *Ejemplo (Neutro si lo mencionas):* Si hablas de un alimento que sabes que es neutro (porque no está en las listas), simplemente usa su nombre.
+
+**Aplicación:**
+* Aplica este formato siempre que nombres un alimento específico recuperado de la base de datos o cuando generes listas.
+* Cuando el usuario pregunte sobre un alimento específico que *no esté en las listas*, infórmale que se considera 'neutro' para este perfil y generalmente se puede consumir sin restricciones.
+* Recuerda que los símbolos ◊ y • son solo para la *presentación*. Tu lógica interna debe seguir basándose en los valores de los campos estructurados.
+* Si mencionas notas (como Ω3), puedes incluirlas después del nombre y su símbolo si aplica (Ej: \`Salmón rey Ω3◊\`).
+
+Debes considerar la siguiente información del usuario (si está disponible):
+- Edad: ${userInfo?.age || 'No proporcionada'}
+- Género: ${userInfo?.gender || 'No proporcionado'}
+- Peso: ${userInfo?.weight || 'No proporcionado'}
+- Altura: ${userInfo?.height || 'No proporcionada'}
+- Objetivos: ${userInfo?.goals || 'No proporcionados'}
+- Restricciones dietéticas: ${userInfo?.dietaryRestrictions || 'No proporcionadas'}
+- Alergias: ${userInfo?.allergies || 'No proporcionadas'}
+
+Utiliza la siguiente información de base de datos para tus recomendaciones:
+${JSON.stringify(genotipoData)}`;
+
+      console.log('Enviando solicitud a DeepSeek...');
+      const response = await deepseekAPI.post('/chat/completions', {
+        model: "deepseek-chat",
         messages: [
           { role: "system", content: systemMessage },
           { role: "user", content: message }
         ],
-        max_tokens: 1000
+        stream: false
       });
       
-      console.log('Respuesta recibida de OpenAI');
-      res.json({ response: completion.choices[0].message.content });
+      console.log('Respuesta recibida de DeepSeek');
+      res.json({ response: response.data.choices[0].message.content });
     } catch (error) {
       // Error al procesar el cuerpo de la solicitud
       console.error('Error al procesar la solicitud:', error);
@@ -88,12 +133,12 @@ app.post('/api/nutrition-advice', verifyApiKey, async (req, res) => {
         details: error.message 
       });
     }
-  } catch (openaiError) {
-    console.error('Error al comunicarse con OpenAI:', openaiError);
+  } catch (apiError) {
+    console.error('Error al comunicarse con DeepSeek:', apiError);
     res.status(500).json({ 
-      error: 'Error al procesar la solicitud con OpenAI', 
-      details: openaiError.message,
-      stack: process.env.NODE_ENV !== 'production' ? openaiError.stack : undefined
+      error: 'Error al procesar la solicitud con DeepSeek', 
+      details: apiError.message,
+      stack: process.env.NODE_ENV !== 'production' ? apiError.stack : undefined
     });
   }
 });
@@ -108,7 +153,7 @@ app.get('/', (req, res) => {
   res.send(`
     <html>
       <head>
-        <title>API Asistente Nutricional</title>
+        <title>API Asistente Nutricional GenoTipo 1 Hunter</title>
         <style>
           body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -154,23 +199,23 @@ app.get('/', (req, res) => {
         </style>
       </head>
       <body>
-        <h1>API del Asistente Nutricional</h1>
-        <p>Esta es la API del servicio de asistente nutricional. Para utilizar este servicio, debes hacer peticiones a los siguientes endpoints:</p>
+        <h1>API del Asistente Nutricional GenoTipo 1 Hunter</h1>
+        <p>Esta es la API del servicio de asistente nutricional basado en el GenoTipo 1 Hunter. Para utilizar este servicio, debes hacer peticiones a los siguientes endpoints:</p>
         
         <div class="endpoint">
           <h3><span class="method post">POST</span> /api/nutrition-advice</h3>
           <p>Envía una consulta al asistente nutricional y recibe recomendaciones personalizadas.</p>
           <p><strong>Cuerpo de la petición:</strong></p>
           <pre><code>{
-  "message": "¿Qué alimentos son ricos en proteína?",
+  "message": "¿Qué alimentos son recomendados para mi GenoTipo 1 Hunter?",
   "userInfo": {
     "age": "30",
-    "gender": "femenino",
-    "weight": "65",
-    "height": "170",
-    "goals": "Ganar masa muscular",
-    "dietaryRestrictions": "Vegetariana",
-    "allergies": "Nueces"
+    "gender": "masculino",
+    "weight": "80",
+    "height": "175",
+    "goals": "Pérdida de peso",
+    "dietaryRestrictions": "Sin lácteos",
+    "allergies": "Frutos secos"
   }
 }</code></pre>
         </div>
