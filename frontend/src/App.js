@@ -46,7 +46,7 @@ function App() {
     }, 3000);
     
     return () => clearTimeout(timer);
-  }, []);
+  }, [isProfileComplete]); // Añadida dependencia faltante
 
   const toggleProfile = () => {
     setShowProfile(!showProfile);
@@ -146,17 +146,17 @@ function App() {
           <p className="mb-2">© {new Date().getFullYear()} Asistente de Orientación Nutricional</p>
           <p className="text-sm text-green-200">Desarrollado por Miguel Ojeda</p>
           <div className="mt-4 flex justify-center space-x-4">
-            <a href="#" className="text-green-200 hover:text-white transition-colors">
+            <button onClick={() => window.alert('Términos de uso no disponibles actualmente')} className="text-green-200 hover:text-white transition-colors">
               Términos de uso
-            </a>
+            </button>
             <span className="text-green-500">•</span>
-            <a href="#" className="text-green-200 hover:text-white transition-colors">
+            <button onClick={() => window.alert('Política de privacidad no disponible actualmente')} className="text-green-200 hover:text-white transition-colors">
               Política de privacidad
-            </a>
+            </button>
             <span className="text-green-500">•</span>
-            <a href="#" className="text-green-200 hover:text-white transition-colors">
+            <button onClick={() => window.alert('Información de contacto no disponible actualmente')} className="text-green-200 hover:text-white transition-colors">
               Contacto
-            </a>
+            </button>
           </div>
         </div>
       </footer>
