@@ -8,15 +8,54 @@ const path = require('path');
 const app = express();
 const port = process.env.PORT || 5000;
 
-// Carga el archivo JSON con la información del Genotipo 1 Hunter
-let genotipoData;
+// Cargar los archivos JSON del Genotipo 1 Hunter y combinar los datos
+let genotipoData = { superfoods: { categories: {} }, avoidances: { categories: {} } };
 try {
-  const jsonPath = path.join(__dirname, 'data', 'deepseek-genotipo-1-hunter.json');
-  genotipoData = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
+  // Cargar parte 1 (estructura base y primeras categorías de superfoods)
+  const part1Path = path.join(__dirname, 'data', 'deepseek-genotipo-1-hunter-part1.json');
+  const part1Data = JSON.parse(fs.readFileSync(part1Path, 'utf8'));
+  
+  // Cargar parte 2 (resto de superfoods y primera parte de avoidances)
+  const part2Path = path.join(__dirname, 'data', 'deepseek-genotipo-1-hunter-part2.json');
+  const part2Data = JSON.parse(fs.readFileSync(part2Path, 'utf8'));
+  
+  // Cargar parte 3 (resto de avoidances)
+  const part3Path = path.join(__dirname, 'data', 'deepseek-genotipo-1-hunter-part3.json');
+  const part3Data = JSON.parse(fs.readFileSync(part3Path, 'utf8'));
+
+  // Crear la estructura base
+  genotipoData = {
+    genotype: part1Data.genotype,
+    description: part1Data.description,
+    superfoods: {
+      title: part1Data.superfoods.title,
+      guidance: part1Data.superfoods.guidance,
+      categories: { ...part1Data.superfoods.categories }
+    },
+    avoidances: {
+      title: part2Data.avoidances_part1.title,
+      guidance: part2Data.avoidances_part1.guidance,
+      categories: { ...part2Data.avoidances_part1.categories }
+    }
+  };
+
+  // Añadir el resto de categorías de superfoods
+  for (const category in part2Data.superfoods_continued.categories) {
+    genotipoData.superfoods.categories[category] = part2Data.superfoods_continued.categories[category];
+  }
+
+  // Añadir el resto de categorías de avoidances
+  for (const category in part3Data.avoidances_part2.categories) {
+    genotipoData.avoidances.categories[category] = part3Data.avoidances_part2.categories[category];
+  }
+
   console.log("Información del Genotipo 1 Hunter cargada correctamente");
 } catch (error) {
-  console.error("Error al cargar el archivo JSON del Genotipo 1 Hunter:", error);
-  genotipoData = { superfoods: [], avoidances: [] }; // Valor por defecto en caso de error
+  console.error("Error al cargar los archivos JSON del Genotipo 1 Hunter:", error);
+  genotipoData = { 
+    superfoods: { categories: {} }, 
+    avoidances: { categories: {} }
+  };
 }
 
 // Configuración de CORS - Permitir orígenes específicos
@@ -143,6 +182,14 @@ ${JSON.stringify(genotipoData)}`;
   }
 });
 
+// Endpoint para obtener datos del Genotipo Hunter directamente
+app.get('/api/genotipo-data', (req, res) => {
+  res.json({ 
+    status: 'OK', 
+    data: genotipoData
+  });
+});
+
 // Endpoint de verificación de estado
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date() });
@@ -218,6 +265,11 @@ app.get('/', (req, res) => {
     "allergies": "Frutos secos"
   }
 }</code></pre>
+        </div>
+        
+        <div class="endpoint">
+          <h3><span class="method get">GET</span> /api/genotipo-data</h3>
+          <p>Obtiene los datos completos sobre el GenoTipo 1 Hunter.</p>
         </div>
         
         <div class="endpoint">
