@@ -9,7 +9,8 @@
       "src": "frontend/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "build"
+        "distDir": "build",
+        "buildCommand": "REACT_APP_API_URL=https://nutri-assistant-app.vercel.app/api CI=false npm run build"
       }
     }
   ],
@@ -26,5 +27,8 @@
       "src": "/",
       "dest": "frontend/index.html"
     }
-  ]
+  ],
+  "env": {
+    "CI": "false"
+  }
 }
